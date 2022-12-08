@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { useState, useEffect } from "react";
 import { nanoid } from 'nanoid'
 import Box from "./Box";
 import ContactForm from "./ContactForm/ContactForm";
@@ -6,60 +6,44 @@ import ContactList from "./ContactList/ContactList";
 import Filter from "./Filter/Filter";
 
  
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: ''
-  }
-  componentDidMount() {
-    const contacts = localStorage.getItem(`contacts`);
-    const parsedContacts = JSON.parse(contacts);
+export const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(localStorage.getItem(`contacts`)) ?? []; 
+  });
+  const [filter, setFilter] = useState('');
+  
+  useEffect(() => {
+      localStorage.setItem(`contacts`, JSON.stringify(contacts)); 
+  }, [contacts])
 
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-    } 
-  }
+ 
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem(`contacts`, JSON.stringify(this.state.contacts));
-    }
+  const handleDeleteContact = contactId => {
+    setContacts(prevContacts => prevContacts.filter(contact => contact.id !== contactId));
   }
 
-  handleDeleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId)
-    }))
-  }
-
-  addContact = ({name, number}) => {
+  const addContact = ({name, number}) => {
     const contact = {
       id: nanoid(),
       name,
       number
     }
 
-    this.setState(prevState => ({
-      contacts: [contact, ...prevState.contacts]
-    }))
+    setContacts(prevContacts => [contact, ...prevContacts])
   };
  
-  handleChangeFilter = e => {
-    this.setState({ filter: e.target.value });
+  const handleChangeFilter = e => {
+    setFilter(e.target.value)
   }
-
-  
-
-  render() {
-    const { filter } = this.state
     
-    const normalizedFilter = this.state.filter.toLowerCase();
+    const normalizedFilter = filter.toLowerCase();
     
-    const filterContacts = this.state.contacts.filter(contact => {
+    const filterContacts = contacts.filter(contact => {
      return contact.name.toLowerCase().includes(normalizedFilter)
     });
 
-    return <Box
+  return (
+    <Box
       height='100vh'
       display='flex'
       flexDirection='column'
@@ -69,10 +53,10 @@ export class App extends Component {
       color='#010101'
     >
       <h1>Phonebook</h1>
-      <ContactForm onSubmit={this.addContact} />
+      <ContactForm onSubmit={addContact} />
       <h2>Contact</h2>
-      <Filter value={filter} onChange={this.handleChangeFilter} />
-      <ContactList contacts={filterContacts} onDeleteContact={this.handleDeleteContact} />
-    </Box>
+      <Filter value={filter} onChange={handleChangeFilter} />
+      <ContactList contacts={filterContacts} onDeleteContact={handleDeleteContact} />
+    </Box>)
   };
-};
+

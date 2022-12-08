@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { InputFilter, NameInput } from './Filter.styled';
+
 const Filter = ({value, onChange}) => {
     return (
         <NameInput>
